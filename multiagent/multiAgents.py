@@ -291,7 +291,7 @@ def betterEvaluationFunction(currentGameState):
       DESCRIPTION: check ghost first since you might die.
                    check food now
                    check power
-                   if scare time is low, then ghost is scary, so i make ghost level negative
+                   if scare time is really low, then ghost is scary, so i make ghost level high, also power is important
                    if scaretime is plenty, then ghost is not even a problem and food is important
 
 
@@ -310,27 +310,34 @@ def betterEvaluationFunction(currentGameState):
 
     for ghosts in newGhostPosition:
         ghost_dis = manhattanDistance(newPos, ghosts)
-        if ghost_dis != 0 and ghost_dis <= 5:
-            ghost_level += 1/ghost_dis
+        if ghost_dis <= 5:
+            if ghosts[0] != newPos[0] or ghosts[1] != newPos[1]:
+                ghost_level += -50
+            else:
+                ghost_level += -80
+        else:
+            ghost_level += -ghost_dis
 
     for food in newFood.asList():
-        counter += 1
         food_dis = manhattanDistance(newPos, food)
         if food_dis != 0:
-            food_level += 1/food_dis
-    if counter < 5:
-        food_level = 5
+            food_level += 1.0/food_dis
     for power in newPower:
         power_dis = manhattanDistance(newPos, power)
         if power_dis != 0:
-            power_level += 1/power_dis
+            power_level += 1.0/power_dis
 
     for t in newScaredTimes:
         if t<1:
-            # print "scary"
-            return currentGameState.getScore()+(-1)*6*ghost_level+food_level+2*power_level
-
-    return currentGameState.getScore()+5*food_level+power_level+(1/6)*ghost_level
+            score = 50*currentGameState.getScore()+70*ghost_level+60*food_level+20*power_level
+            # print("food level: ")
+            # print(food_level)
+            # print("ghost level: ")
+            # print(ghost_level)
+            # print("normal: ")
+            # print(score)
+            return score
+    return 50*currentGameState.getScore()+50*food_level
 # Abbreviation
 better = betterEvaluationFunction
 
