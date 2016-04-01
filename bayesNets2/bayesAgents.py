@@ -212,26 +212,55 @@ def fillObsCPT(bayesNet, gameState):
     bottomLeftPos, topLeftPos, bottomRightPos, topRightPos = gameState.getPossibleHouses()
 
     "*** YOUR CODE HERE ***"
-    def getAdjacentHouse(pos, housePositions):
-        for i in range(len(housePositions)):
-            center = housePositions[i]
-            if abs(center[0] - pos[0]) <= 1 and abs(center[1] - pos[1]) <= 1:
-                return i
-        return None
+    def isAdjacent(pos, housePos):
+        return abs(pos[0] - housePos[0]) <= 1.0 and abs(pos[1] - housePos[1]) <= 1.0
 
+    from layout import PROB_FOOD_RED, PROB_GHOST_RED
     for housePos in gameState.getPossibleHouses():
         for obsPos in gameState.getHouseWalls(housePos):
             obsVar = OBS_VAR_TEMPLATE % obsPos
-            obsFactor = bn.Factor([obsVar], [FOOD_HOUSE_VAR, GHOST_HOUSE_VAR], bayesNet.variableDomainsDict())
-            adjHouseCenter = getAdjacentHouse(obsPos, gameState.getPossibleHouses())
+            obsFactor = bn.Factor([obsVar], [GHOST_HOUSE_VAR, FOOD_HOUSE_VAR], bayesNet.variableDomainsDict())
+
+            if isAdjacent(obsPos, bottomLeftPos):
+                adjHouseCenter = BOTTOM_LEFT_VAL
+            elif isAdjacent(obsPos, topLeftPos):
+                adjHouseCenter = TOP_LEFT_VAL
+            elif isAdjacent(obsPos, bottomRightPos):
+                adjHouseCenter = BOTTOM_RIGHT_VAL
+            elif isAdjacent(obsPos, topRightPos):
+                adjHouseCenter = TOP_RIGHT_VAL
+            else:
+                adjHouseCenter = None
+
             for assignment in obsFactor.getAllPossibleAssignmentDicts():
+                prob = 0
                 if not adjHouseCenter:
-                    prob = 1.0
-                elif 
+                    if assignment[obsVar] == NO_OBS_VAL:
+                        prob = 1
+                    else:
+                        prob = 0
+                elif assignment[FOOD_HOUSE_VAR] == adjHouseCenter:
+                    if assignment[obsVar] == RED_OBS_VAL:
+                        prob = PROB_FOOD_RED
+                    elif assignment[obsVar] == BLUE_OBS_VAL:
+                        prob = 1 - PROB_FOOD_RED
+                    else:
+                        prob = 0
+                elif assignment[GHOST_HOUSE_VAR] == adjHouseCenter:
+                    if assignment[obsVar] == RED_OBS_VAL:
+                        prob = PROB_GHOST_RED
+                    elif assignment[obsVar] == BLUE_OBS_VAL:
+                        prob = 1 - PROB_GHOST_RED
+                    else:
+                        prob = 0
+                else:
+                    if assignment[obsVar] == NO_OBS_VAL:
+                        prob = 1
+                    else:
+                        prob = 0
 
                 obsFactor.setProbability(assignment, prob)
-
-
+            bayesNet.setCPT(obsVar, obsFactor)
 
 def getMostLikelyFoodHousePosition(evidence, bayesNet, eliminationOrder):
     """
