@@ -213,7 +213,7 @@ def fillObsCPT(bayesNet, gameState):
 
     "*** YOUR CODE HERE ***"
     def isAdjacent(pos, housePos):
-        return abs(pos[0] - housePos[0]) <= 1.0 and abs(pos[1] - housePos[1]) <= 1.0
+        return abs(pos[0] - housePos[0]) <= 1 and abs(pos[1] - housePos[1]) <= 1
 
     from layout import PROB_FOOD_RED, PROB_GHOST_RED
     for housePos in gameState.getPossibleHouses():
