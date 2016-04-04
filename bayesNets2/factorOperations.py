@@ -98,45 +98,22 @@ def joinFactors(factors):
                     "\nappear in more than one input factor.\n" + 
                     "Input factors: \n" +
                     "\n".join(map(str, factors)))
-
-
     "*** YOUR CODE HERE ***"
-    setsofinputVariableDomains = {}
-    setsOfConditioned = [set(factor.conditionedVariables()) for factor in factors]
+    conditioned, unconditioned = set(), set()
+    for f in factors:
+        conditioned, unconditioned = conditioned.union(f.conditionedVariables()), unconditioned.union(f.unconditionedVariables())
 
-    setsOfConditioned = set()
-    setsOfUnconditioned = set()
+    for unconditioned_var in unconditioned:
+        if unconditioned_var in conditioned:
+            conditioned.remove(unconditioned_var)
 
-    for factor in factors:
-        for x in factor.variableDomainsDict().keys():
-            setsofinputVariableDomains[x] = factor.variableDomainsDict()[x]
-        for y in factor.conditionedVariables():
-            setsOfConditioned.add(y)
-        for z in factor.unconditionedVariables():
-            setsOfUnconditioned.add(z)
-
-    copy_setsofConditioned = setsOfConditioned.copy()
-
-    for x in setsOfUnconditioned:
-        for y in setsOfConditioned:
-            if x == y:
-                copy_setsofConditioned.remove(x)
-
-    setsOfUnconditioned = list(setsOfUnconditioned)
-    setsOfConditioned = list(copy_setsofConditioned)
-
-    result = Factor(setsOfUnconditioned, setsOfConditioned, setsofinputVariableDomains)
-    for x in result.getAllPossibleAssignmentDicts():
-        result.setProbability(x, 1.0)
-
-    for factor in factors:
-        for result_x in result.getAllPossibleAssignmentDicts():
-            for result_f in factor.getAllPossibleAssignmentDicts():
-                if set(result_f.values()).issubset(result_x.values()):
-                    x_prob = factor.getProbability(result_f)*result.getProbability(result_x)
-                    result.setProbability(result_x, x_prob)
-    return result
-
+    joined_factor = Factor(unconditioned, conditioned, factors[0].variableDomainsDict())
+    for assignment in joined_factor.getAllPossibleAssignmentDicts():
+        joined_factor.setProbability(assignment, 1.0)
+        for f in factors:
+            joined_factor.setProbability(assignment, joined_factor.getProbability(assignment)*f.getProbability(assignment))
+            
+    return joined_factor
 
 def eliminateWithCallTracking(callTrackingList=None):
 
