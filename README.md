@@ -11,3 +11,6 @@ We implemented a simple reflex agent for pacman that used a basic evaluation fun
 We implemented several variants of value iteration for a Markov Decision Problem (MDP), from which we were able to generate an offline policy. One was "Batch" Value Iteration, where we updated V<sub>k+1</sub>(s) for all states s in every iteration whereas another was Asynchronous Value Iteration, where we update only one V<sub>k+1</sub>(s) per iteration and cycle around. We finally implemented Prioritized Sweeping Value Iteration, which is described in this [paper](http://papers.nips.cc/paper/651-memory-based-reinforcement-learning-efficient-computation-with-prioritized-sweeping.pdf). 
 
 We also implemented model-free agents for the more common situation where the MDP is unknown. We implemented a Q-Learning agent, which had an epsilon-greedy action selection for exploration. We finally implemented an Approximate Q-Learning agent, which learned weights for features of states, where states may share the same feature.
+
+## Bayes' Nets (proj4)
+We implemented the structure and inference algorithms for Bayes Nets, specifically variable elimination and value-of-perfect-information computations.
