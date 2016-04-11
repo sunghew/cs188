@@ -342,10 +342,13 @@ class ParticleFilter(InferenceModule):
         """
         self.particles = []
         "*** YOUR CODE HERE ***"
-        interval = len(self.legalPositions) / self.numParticles
-        for p in range(self.numParticles:
-            pos = self.legalPositions[(p * interval) % len(self.legalPositions)]
-            self.particles.append(pos)
+        allotment, remaining = self.numParticles // len(self.legalPositions), self.numParticles % len(self.legalPositions)
+        for pos in self.legalPositions:
+            for _ in range(allotment):
+                self.particles.append(pos)
+            if remaining > 0:
+                self.particles.append(pos)
+                remaining -= 1
 
     def observeUpdate(self, observation, gameState):
         """
@@ -376,8 +379,9 @@ class ParticleFilter(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
         beliefs = DiscreteDistribution()
-        for p in self.legalPositions:
-            
+        for p in self.particles:
+            beliefs[p] += 1.0 / self.numParticles
+        return beliefs
 
 class JointParticleFilter(ParticleFilter):
     """
