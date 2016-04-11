@@ -75,6 +75,9 @@ class DiscreteDistribution(dict):
         {}
         """
         "*** YOUR CODE HERE ***"
+        total = self.total()
+        for key, value in self.iteritems():
+            self[key] = value / total
 
     def sample(self):
         """
@@ -98,7 +101,11 @@ class DiscreteDistribution(dict):
         0.0
         """
         "*** YOUR CODE HERE ***"
-
+        total, sample, cumulative = self.total(), random.random(), 0
+        for key, value in self.iteritems():
+            if sample < cumulative + value / total:
+                return key
+            cumulative += value / total
 
 class InferenceModule:
     """
@@ -167,6 +174,13 @@ class InferenceModule:
         Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
         """
         "*** YOUR CODE HERE ***"
+        if noisyDistance == None and ghostPosition == jailPosition:
+            return 1
+        if noisyDistance == None or ghostPosition == jailPosition:
+            return 0
+        trueDistance = manhattanDistance(pacmanPosition, ghostPosition)
+        return busters.getObservationProbability(noisyDistance, trueDistance)
+
 
     def setGhostPosition(self, gameState, ghostPosition, index):
         """
@@ -274,7 +288,12 @@ class ExactInference(InferenceModule):
         position is known.
         """
         "*** YOUR CODE HERE ***"
-        self.beliefs.normalize()
+        for gp in self.allPositions:
+            update = self.getObservationProb(observation, gameState.getPacmanPosition(), gp, self.getJailPosition())
+            self.beliefs[gp] = self.beliefs[gp] * update
+
+        if not self.beliefs.total() == 0:
+            self.beliefs.normalize()
 
     def elapseTime(self, gameState):
         """
@@ -286,10 +305,21 @@ class ExactInference(InferenceModule):
         current position is known.
         """
         "*** YOUR CODE HERE ***"
+        newPosDistOnOldPos = {}
+        for oldPos in self.allPositions:
+            newPosDistOnOldPos[oldPos] = self.getPositionDistribution(gameState, oldPos)
+
+        elapsedTime = DiscreteDistribution()
+        for newPos in self.allPositions:
+            for oldPos in self.allPositions:
+                elapsedTime[newPos] += self.beliefs[oldPos] * newPosDistOnOldPos[oldPos][newPos]
+
+        self.beliefs = elapsedTime
+        if not elapsedTime.total() == 0:
+            self.beliefs.normalize()
 
     def getBeliefDistribution(self):
         return self.beliefs
-
 
 class ParticleFilter(InferenceModule):
     """
@@ -312,6 +342,10 @@ class ParticleFilter(InferenceModule):
         """
         self.particles = []
         "*** YOUR CODE HERE ***"
+        interval = len(self.legalPositions) / self.numParticles
+        for p in range(self.numParticles:
+            pos = self.legalPositions[(p * interval) % len(self.legalPositions)]
+            self.particles.append(pos)
 
     def observeUpdate(self, observation, gameState):
         """
@@ -341,7 +375,9 @@ class ParticleFilter(InferenceModule):
         essentially converts a list of particles into a belief distribution.
         """
         "*** YOUR CODE HERE ***"
-
+        beliefs = DiscreteDistribution()
+        for p in self.legalPositions:
+            
 
 class JointParticleFilter(ParticleFilter):
     """
