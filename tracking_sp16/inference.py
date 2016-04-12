@@ -431,7 +431,7 @@ class JointParticleFilter(ParticleFilter):
         "*** YOUR CODE HERE ***"
         permutations = list(itertools.product(self.legalPositions, repeat=self.numGhosts))
         random.shuffle(permutations)
-        
+
         allotment, remaining = self.numParticles // len(permutations), self.numParticles % len(permutations)
         for poss in permutations:
             for _ in range(allotment):
@@ -471,6 +471,23 @@ class JointParticleFilter(ParticleFilter):
         the DiscreteDistribution may be useful.
         """
         "*** YOUR CODE HERE ***"
+        beliefs = self.getBeliefDistribution()
+        permutations = list(itertools.product(self.legalPositions, repeat=self.numGhosts))
+        random.shuffle(permutations)
+
+        for gps in permutations:
+            for i in range(self.numGhosts):
+                weight = self.getObservationProb(observation[i], gameState.getPacmanPosition(), gps[i], self.getJailPosition(i))
+                beliefs[gps] *= weight
+
+        if beliefs.total() == 0:
+            self.initializeUniformly(gameState)
+            beliefs = self.getBeliefDistribution()
+
+        new_sample = []
+        for _ in range(self.numParticles):
+            new_sample.append(beliefs.sample())
+        self.particles = new_sample
 
     def elapseTime(self, gameState):
         """
@@ -480,14 +497,15 @@ class JointParticleFilter(ParticleFilter):
         newParticles = []
         for oldParticle in self.particles:
             newParticle = list(oldParticle)  # A list of ghost positions
-
             # now loop through and update each entry in newParticle...
             "*** YOUR CODE HERE ***"
+            for i in range(self.numGhosts):
+                newPosDist = self.getPositionDistribution(gameState, oldParticle, i, self.ghostAgents[i])
+                newParticle[i] = newPosDist.sample()
 
             """*** END YOUR CODE HERE ***"""
             newParticles.append(tuple(newParticle))
         self.particles = newParticles
-
 
 # One JointInference module is shared globally across instances of MarginalInference
 jointInference = JointParticleFilter()
